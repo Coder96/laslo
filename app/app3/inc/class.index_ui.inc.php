@@ -12,13 +12,13 @@
 		);
 		
 		function index_ui(){
-			$GLOBALS['lasloSystemGlobals']['pageParts']->applicationBar();
-			echo 'App1 index_ui<br>';
-			$this->bo = createObject('app1', 'index_bo');
+			$GLOBALS['lasloSystemGlobals']['pageParts']->applicationsBar();
+			echo 'App3 index_ui<br>';
+			$this->bo = createObject('app3', 'index_bo');
 		}
 		
 		function index(){
-			echo 'App1 index<br>';
+			echo 'App3 index<br>';
 			echo(dirname(__DIR__));
 		}
 		

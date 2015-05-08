@@ -13,7 +13,7 @@ function &createObject($appName, $className){
 		echo(__FUNCTION__."($className) file $classFileName not found!");
 		exit();
 	}
-	// this will stop php with a 500, if the class does not exist or there are errors in it (syntax error go into the error_log)
+	// this will stop php with a 500, if the class does not exist or there are errors in it 
 	require_once($classFileName);
 	$args = func_get_args();
 	if(count($args) == 2 ){
@@ -33,6 +33,29 @@ function &createObject($appName, $className){
 	}
 	return $obj;
 }
+
+function getUrlVar($varName, $varType='all'){
+	$retVar = '';
+	if($varType == 'all'){
+		if(isset($_GET[$varName])){
+			$retVar = $_GET[$varName];
+		} else {
+			if(isset($_POST[$varName])){
+				$retVar = $_POST[$varName];
+			}
+		}
+	} elseif($varType == 'get'){
+		if(isset($_GET[$varName])){
+			$retVar = $_GET[$varName];
+		}
+	} elseif($varType == 'post'){
+		if(isset($_POST[$varName])){
+			$retVar = $_POST[$varName];
+		}
+	}
+	return $retVar;
+}	
+
 /*
 *
 *	checks to see if terminal is logged in
@@ -45,53 +68,59 @@ function isLoggedIn(){
 	//
 	session_start();
 	$message="";
-	if(isset($_POST['user_id'])){
-		if($_POST['user_id'] == 'user1') {
-			$_SESSION["user_id"] = 1001;
-			$_SESSION["user_name"] = 'user1';
-			
-		} elseif($_POST['user_id'] == 'user2') {
-			$_SESSION["user_id"] = 1002;
-			$_SESSION["user_name"] = 'user2';
-			
-		} elseif($_POST['user_id'] == 'user3') {
-			$_SESSION["user_id"] = 1003;
-			$_SESSION["user_name"] = 'user3';
-			
+	
+	if(isset($_POST['userId'])){
+	
+		$user = $GLOBALS['lasloSystemGlobals']['db']['connection']->select('sysUserList','sulIndexId',array('sulUserId[=]'=>getUrlVar('userId')));	
+		if(count($user) == 1){
+			$_SESSION["userId"] = $user[0]['sulIndexId'];
 		} else {
-			echo "Invalid Username or Password!";
+			echo "Invalid credentials.";
 		}
 	}
-#	print_r($_SESSION);
-	// remove all session variables
-//session_unset();
-
-// destroy the session
-//session_destroy(); 
 	
-	if(isset($_SESSION["user_id"])) {
+	if(isset($_SESSION["userId"])) {
+		loadUserArray($_SESSION["userId"]);
 		return true;
 	}
 	return false;
 }
 
+function loadUserArray($userIndexId){
+	
+	$user = $GLOBALS['lasloSystemGlobals']['db']['connection']->select('sysUserList','*',array('sulIndexId[=]'=>$userIndexId));	
+	
+	$GLOBALS['lasloSystemGlobals']['user']['sulIndexId'] 						= $user[0]['sulIndexId'];
+	$GLOBALS['lasloSystemGlobals']['user']['sulUserId'] 						= $user[0]['sulUserId'];
+	$GLOBALS['lasloSystemGlobals']['user']['sulPasswordId'] 				= $user[0]['sulPasswordId'];
+	$GLOBALS['lasloSystemGlobals']['user']['sulLastLogin'] 					= $user[0]['sulLastLogin'];
+	$GLOBALS['lasloSystemGlobals']['user']['sulLastLoginFrom'] 			= $user[0]['sulLastLoginFrom'];
+	$GLOBALS['lasloSystemGlobals']['user']['sulLastPasswordChange'] = $user[0]['sulLastPasswordChange'];
+	$GLOBALS['lasloSystemGlobals']['user']['sulAccountStatus'] 			= $user[0]['sulAccountStatus'];
+	$GLOBALS['lasloSystemGlobals']['user']['sulAccountType'] 				= $user[0]['sulAccountType'];
+}
+
+
 function isLoginSessionExpired() {
 	$login_session_duration = 10; // global var
 	$current_time = time(); 
-	if(isset($_SESSION['loggedintime']) and isset($_SESSION["user_id"])){  
+	if(isset($_SESSION['loggedintime']) and isset($_SESSION["userId"])){  
 		if(((time() - $_SESSION['loggedintime']) > $login_session_duration)){ 
 			return true; 
 		} 
 	}
 	return false;
 }
+
+
+
 /*
 *
 *	brings up the login prompt.
 *
 *
 */
-function PromptLogin(){
+function promptLogin(){
 	echo('
 <html>
 	<head>
@@ -99,7 +128,7 @@ function PromptLogin(){
 	</head>
 	<body>
 		<form method="post" action="index.php">
-			Username: <input type="text" name="user_id" /><br>
+			Username: <input type="text" name="userId" /><br>
 			Password: <input type="text" name="password" /><br>
 			<input type="submit" value="Let me in" /><br>
 		</form>
@@ -108,22 +137,33 @@ function PromptLogin(){
 	');
 }
 
-function isUserAllowedApplication($userId, $application){
-	//
-	// This will come from the database  user profile and groups the user belongs to.
-	//
+function isUserAllowedApplication($application){
 	
-	if($userId == 1001 AND ($application == 'app1' OR $application == 'app2' OR $application == 'app3' )){
-		return true;
-	} elseif($userId == 1002 AND ($application == 'app1' OR $application == 'app2' )){
-		return true;
-	} elseif($userId == 1003 AND ( $application == 'app2' OR $application == 'app3' )){
-		return true;
-	} elseif($application == 'baseapi' OR $application == 'home') {
-		return true;
-	} else {
-		return false;
+	foreach($GLOBALS['lasloSystemGlobals']['user']['applications'] as $key => $value){
+		foreach($value as $key2 => $value2){
+			if($key2 == 'sal_NameId' AND $value2 == $application){
+				return true;
+			}
+		}
 	}
 	return false;
 }
 
+function loadUserAppList($userId){
+	
+	$GLOBALS['lasloSystemGlobals']['user']['applications'] = $GLOBALS['lasloSystemGlobals']['db']['connection']->select(
+		'sysUserGroupList',
+		array(
+			'[>]sysGroupApplicationList' 	=> array('sugl_sglIndexid' => 'sgal_sglIndexId'),
+			'[>]sysApplicationList' 			=> array('sysGroupApplicationList.sgal_salNameId' => 'sal_NameId')
+		),
+		'*',
+		array(
+			'sugl_sulIndexId[=]' => $userId,
+			'ORDER' => 'sal_Order',
+			'GROUP' => 'sal_NameId'
+		)
+	);
+	#echo('<code><pre>');
+	#print_r($apps);
+}

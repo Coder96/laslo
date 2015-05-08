@@ -5,7 +5,7 @@ $GLOBALS['lasloSystemGlobals']['rootDir'] = dirname(__DIR__);
 require_once($GLOBALS['lasloSystemGlobals']['rootDir'] . '/app/config/config.inc.php'); 
 
 require_once($GLOBALS['lasloSystemGlobals']['rootDir'] . '/app/baseapi/inc/basefunctions.inc.php');
-/*
+
 require_once($GLOBALS['lasloSystemGlobals']['rootDir'] . '/app/baseapi/inc/medoo.min.inc.php');
 
 $GLOBALS['lasloSystemGlobals']['db']['connection'] = new medoo(array(
@@ -22,16 +22,23 @@ $GLOBALS['lasloSystemGlobals']['db']['connection'] = new medoo(array(
 		PDO::ATTR_CASE => PDO::CASE_NATURAL
 	)
 ));
-*/
+
+if(getUrlVar('action') == 'logout'){
+	logout();
+}
+
+
 if(isLoggedIn()){
 #	echo('Logged in');
 	#$GLOBALS['egw']->common =& CreateObject('phpgwapi.common');
 	 $pageParts = '';
 	
+	loadUserAppList($GLOBALS['lasloSystemGlobals']['user']['sulIndexId']);
+	
 	$GLOBALS['lasloSystemGlobals']['pageParts'] = createObject('baseapi','pageparts');
 
 	if(isset($_GET['action']) && preg_match('/^[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+$/', $_GET['action'])){
-		list($calledApp,$calledClass,$calledMethod) = explode('.',$_GET['action']);
+		list($calledApp,$calledClass,$calledMethod) = explode('.',getUrlVar('action'));
 		$GLOBALS['lasloSystemGlobals']['calledApplication'] = array(
 			'application'	=> $calledApp,
 			'class'  			=> $calledClass,
@@ -55,7 +62,7 @@ if(isLoggedIn()){
 		//
 		// check user has access to this application if not allowed send to home application
 		//
-		if(!isUserAllowedApplication($_SESSION["user_id"], $GLOBALS['lasloSystemGlobals']['calledApplication']['application'])){
+		if(!isUserAllowedApplication($GLOBALS['lasloSystemGlobals']['calledApplication']['application'])){
 			$GLOBALS['lasloSystemGlobals']['calledApplication'] = array(
 			'application'	=> 'home',
 			'class'  			=> 'home_ui',
@@ -78,5 +85,6 @@ if(isLoggedIn()){
 #	print_r($GLOBALS['lasloSystemGlobals']);
 	
 } else {
-	PromptLogin();
+	promptLogin();
 }
+

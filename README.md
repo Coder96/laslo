@@ -1,4 +1,4 @@
-This is an example application framework to try and convert to phalcon
+This an application framework for small businesses to write allplications that will be controlled by a central control group. This is ment for internal applications when users have to login to use any part of the system.
 
 This is not ment to be installed in web directory. This is ment to be installed out side the web directory
 
