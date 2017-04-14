@@ -1,90 +1,101 @@
 <?PHP
+session_start();
+$GLOBALS['lasloSysGbs']['rootDir'] = dirname(__DIR__);
 
-$GLOBALS['lasloSystemGlobals']['rootDir'] = dirname(__DIR__);
+require_once($GLOBALS['lasloSysGbs']['rootDir'] . '/app/config/config.inc.php');
 
-require_once($GLOBALS['lasloSystemGlobals']['rootDir'] . '/app/config/config.inc.php'); 
+require_once($GLOBALS['lasloSysGbs']['rootDir'] . '/app/baseapi/inc/basefunctions.inc.php');
 
-require_once($GLOBALS['lasloSystemGlobals']['rootDir'] . '/app/baseapi/inc/basefunctions.inc.php');
+require_once($GLOBALS['lasloSysGbs']['rootDir'] . '/app/baseapi/inc/medoo.php');
 
-require_once($GLOBALS['lasloSystemGlobals']['rootDir'] . '/app/baseapi/inc/medoo.min.inc.php');
+$GLOBALS['lasloSysGbs']['common'] = lasloCreateObject('baseapi','common');
 
-$GLOBALS['lasloSystemGlobals']['db']['connection'] = new medoo(array(
+$GLOBALS['lasloSysGbs']['db']['connection'] = new medoo(array(
 	// required
-	'server' 				=> $GLOBALS['lasloSystemGlobals']['db']['host'],
-	'database_type' => $GLOBALS['lasloSystemGlobals']['db']['type'],
-	'port' 					=> $GLOBALS['lasloSystemGlobals']['db']['port'],
-	'database_name' => $GLOBALS['lasloSystemGlobals']['db']['name'],
-	'username' 			=> $GLOBALS['lasloSystemGlobals']['db']['user'],
-	'password' 			=> $GLOBALS['lasloSystemGlobals']['db']['pass'],
-	'charset' 			=> $GLOBALS['lasloSystemGlobals']['db']['charset'],
+	'server' 				=> $GLOBALS['lasloSysGbs']['db']['host'],
+	'database_type' => $GLOBALS['lasloSysGbs']['db']['type'],
+	'port' 					=> $GLOBALS['lasloSysGbs']['db']['port'],
+	'database_name' => $GLOBALS['lasloSysGbs']['db']['name'],
+	'username' 			=> $GLOBALS['lasloSysGbs']['db']['user'],
+	'password' 			=> $GLOBALS['lasloSysGbs']['db']['pass'],
+	'charset' 			=> $GLOBALS['lasloSysGbs']['db']['charset'],
 	// driver_option for connection, read more from http://www.php.net/manual/en/pdo.setattribute.php
 	'option' => array(
 		PDO::ATTR_CASE => PDO::CASE_NATURAL
 	)
 ));
 
-if(getUrlVar('action') == 'logout'){
-	logout();
+if(lasloGetUrlVar('action') == 'logout'){
+	$GLOBALS['lasloSysGbs']['common']->logout();
 }
 
 
-if(isLoggedIn()){
-#	echo('Logged in');
-	#$GLOBALS['egw']->common =& CreateObject('phpgwapi.common');
-	 $pageParts = '';
+if(lasloIsLoggedIn()){
+	$pageParts = '';
+	//
+	// At this pont the user should be logged in
+	//
+	$GLOBALS['lasloSysGbs']['user']['applications'] = lasloloadUserAppList($GLOBALS['lasloSysGbs']['user']['sulIndexId']);
 	
-	loadUserAppList($GLOBALS['lasloSystemGlobals']['user']['sulIndexId']);
-	
-	$GLOBALS['lasloSystemGlobals']['pageParts'] = createObject('baseapi','pageparts');
-
+	$GLOBALS['lasloSysGbs']['pageParts'] = lasloCreateObject('baseapi','pageparts');
+	//
+	// Check that action is valid alpha numeric
+	//
 	if(isset($_GET['action']) && preg_match('/^[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+$/', $_GET['action'])){
-		list($calledApp,$calledClass,$calledMethod) = explode('.',getUrlVar('action'));
-		$GLOBALS['lasloSystemGlobals']['calledApplication'] = array(
+
+		list($calledApp,$calledClass,$calledMethod) = explode('.',lasloGetUrlVar('action'));
+		$GLOBALS['lasloSysGbs']['calledApplication'] = array(
 			'application'	=> $calledApp,
 			'class'  			=> $calledClass,
 			'method'			=> $calledMethod
 		);
 	} else {
-		$GLOBALS['lasloSystemGlobals']['calledApplication'] = array(
-			'application'	=> 'home',
-			'class'  			=> 'home_ui',
-			'method'			=> 'index'
-			);
-			// now check user group for default applicaion and goto that application.
-			
-			/*
-			$GLOBALS['laslo']['calledApplication'] = array(
-			'application'	=> 'group default',
-			'class'  			=> 'group default',
-			'method'			=> 'group default'
-			*/
+		$GLOBALS['lasloSysGbs']['calledApplication'] = lasloReturnDefaultAppArray();
 	}
-		//
-		// check user has access to this application if not allowed send to home application
-		//
-		if(!isUserAllowedApplication($GLOBALS['lasloSystemGlobals']['calledApplication']['application'])){
-			$GLOBALS['lasloSystemGlobals']['calledApplication'] = array(
-			'application'	=> 'home',
-			'class'  			=> 'home_ui',
-			'method'			=> 'index'
-			);
-		}
-
-	$calledApplication = createObject(
-		$GLOBALS['lasloSystemGlobals']['calledApplication']['application'],
-		$GLOBALS['lasloSystemGlobals']['calledApplication']['class']
+	//
+	// check user has access to this application if not allowed send to users default application
+	//
+	if(!lasloIsUserAllowedApplication($GLOBALS['lasloSysGbs']['calledApplication']['application'])){
+		$GLOBALS['lasloSysGbs']['calledApplication'] = lasloReturnDefaultAppArray();
+	}
+	//
+	//	Lets create our object 
+	//
+	$calledApplication = lasloCreateObject(
+		$GLOBALS['lasloSysGbs']['calledApplication']['application'],
+		$GLOBALS['lasloSysGbs']['calledApplication']['class']
 		);
+	//
+	// Check that the index exsists
+	//
+	// Check that method can be called from out side world. 
+	//
+	// This is not for if the method is private or public
+	//
 	
-	$calledApplication->$GLOBALS['lasloSystemGlobals']['calledApplication']['method']();
+	$applicationRejected = false;
+	if(isset($calledApplication->publicFunctions[$GLOBALS['lasloSysGbs']['calledApplication']['method']])){
+		if($calledApplication->publicFunctions[$GLOBALS['lasloSysGbs']['calledApplication']['method']] === true){ 
+			if(	method_exists($calledApplication, 'lasloConstruct')){
+				$calledApplication->lasloConstruct();
+			}
+			$code = '$calledApplication->'. $GLOBALS['lasloSysGbs']['calledApplication']['method'] .'();';	
+			eval($code);
+			$applicationRejected = false;
+		} else {
+			$applicationRejected = true;
+		}
+	} else {
+		$applicationRejected = true;
+	}
+	if($applicationRejected === true){
+		unset($calledApplication);
+		lalsoRunDefaultApp();
+	}
+	
+	
+//	print_r($GLOBALS['lasloSysGbs']['calledApplication']);
 
-	$GLOBALS['lasloSystemGlobals']['flags'] = array(
-		'showheader'   => false,
-		'shownavbar'   => false
-	);
-	
-#	print_r($GLOBALS['lasloSystemGlobals']);
-	
 } else {
-	promptLogin();
+	lasloPromptLogin();
 }
-

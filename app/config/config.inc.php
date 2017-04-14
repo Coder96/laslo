@@ -1,6 +1,6 @@
 <?PHP
 	
-$GLOBALS['lasloSystemGlobals']['db'] = array(  // Should be put in a db class
+$GLOBALS['lasloSysGbs']['db'] = array(  // Should be put in a db class
 	'host' => 'localhost',
 	'type' => 'mysql',
 	'port' => '3306',
@@ -10,3 +10,4 @@ $GLOBALS['lasloSystemGlobals']['db'] = array(  // Should be put in a db class
 	'charset' => 'utf8'
 );
 
+$GLOBALS['lasloSysGbs']['debug'] = 1;

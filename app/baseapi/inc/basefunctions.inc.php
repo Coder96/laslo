@@ -7,13 +7,14 @@
  * Parm 3 ...n passed to class
  *
  */
-function &createObject($appName, $className){
-	$classFileName = $GLOBALS['lasloSystemGlobals']['rootDir'].'/app/'.$appName.'/inc/class.'.$className.'.inc.php';
+function &lasloCreateObject($appName, $className){
+	$classFileName = $GLOBALS['lasloSysGbs']['rootDir'].'/app/'.$appName.'/inc/class.'.$className.'.inc.php';
 	if (!file_exists($classFileName)){
 		echo(__FUNCTION__."($className) file $classFileName not found!");
 		exit();
 	}
-	// this will stop php with a 500, if the class does not exist or there are errors in it 
+	// this will stop php with a 500, if the class does not exist or there are errors in it
+//echo("class $classFileName");
 	require_once($classFileName);
 	$args = func_get_args();
 	if(count($args) == 2 ){
@@ -34,8 +35,9 @@ function &createObject($appName, $className){
 	return $obj;
 }
 
-function getUrlVar($varName, $varType='all'){
+function lasloGetUrlVar($varName, $varType='all'){
 	$retVar = '';
+	$varType = strtolower($varType);
 	if($varType == 'all'){
 		if(isset($_GET[$varName])){
 			$retVar = $_GET[$varName];
@@ -54,7 +56,7 @@ function getUrlVar($varName, $varType='all'){
 		}
 	}
 	return $retVar;
-}	
+}
 
 /*
 *
@@ -62,52 +64,53 @@ function getUrlVar($varName, $varType='all'){
 *
 *
 */
-function isLoggedIn(){
+function lasloIsLoggedIn(){
 	//
 	// need to add cockies too.
 	//
-	session_start();
+	//session_start();
 	$message="";
-	
+#	if(isset($_POST['userId'])){echo $_POST['userId'] .' id sent<br>';}
 	if(isset($_POST['userId'])){
-	
-		$user = $GLOBALS['lasloSystemGlobals']['db']['connection']->select('sysUserList','sulIndexId',array('sulUserId[=]'=>getUrlVar('userId')));	
+
+		$user = $GLOBALS['lasloSysGbs']['db']['connection']->select('sysUserList','*',array('sulUserId[=]'=>lasloGetUrlVar('userId')));
 		if(count($user) == 1){
+//			var_dump($user);
 			$_SESSION["userId"] = $user[0]['sulIndexId'];
 		} else {
 			echo "Invalid credentials.";
 		}
 	}
-	
+#	if(isset($_SESSION["userId"])) {echo 'id set<br>';}
 	if(isset($_SESSION["userId"])) {
-		loadUserArray($_SESSION["userId"]);
+		lasloLoadUserArray($_SESSION["userId"]);
 		return true;
 	}
 	return false;
 }
 
-function loadUserArray($userIndexId){
-	
-	$user = $GLOBALS['lasloSystemGlobals']['db']['connection']->select('sysUserList','*',array('sulIndexId[=]'=>$userIndexId));	
-	
-	$GLOBALS['lasloSystemGlobals']['user']['sulIndexId'] 						= $user[0]['sulIndexId'];
-	$GLOBALS['lasloSystemGlobals']['user']['sulUserId'] 						= $user[0]['sulUserId'];
-	$GLOBALS['lasloSystemGlobals']['user']['sulPasswordId'] 				= $user[0]['sulPasswordId'];
-	$GLOBALS['lasloSystemGlobals']['user']['sulLastLogin'] 					= $user[0]['sulLastLogin'];
-	$GLOBALS['lasloSystemGlobals']['user']['sulLastLoginFrom'] 			= $user[0]['sulLastLoginFrom'];
-	$GLOBALS['lasloSystemGlobals']['user']['sulLastPasswordChange'] = $user[0]['sulLastPasswordChange'];
-	$GLOBALS['lasloSystemGlobals']['user']['sulAccountStatus'] 			= $user[0]['sulAccountStatus'];
-	$GLOBALS['lasloSystemGlobals']['user']['sulAccountType'] 				= $user[0]['sulAccountType'];
+function lasloLoadUserArray($userIndexId){
+
+	$user = $GLOBALS['lasloSysGbs']['db']['connection']->select('sysUserList','*',array('sulIndexId[=]'=>$userIndexId));
+
+	$GLOBALS['lasloSysGbs']['user']['sulIndexId'] 						= $user[0]['sulIndexId'];
+	$GLOBALS['lasloSysGbs']['user']['sulUserId'] 							= $user[0]['sulUserId'];
+	$GLOBALS['lasloSysGbs']['user']['sulPasswordId'] 					= $user[0]['sulPasswordId'];
+	$GLOBALS['lasloSysGbs']['user']['sulLastLogin'] 					= $user[0]['sulLastLogin'];
+	$GLOBALS['lasloSysGbs']['user']['sulLastLoginFrom'] 			= $user[0]['sulLastLoginFrom'];
+	$GLOBALS['lasloSysGbs']['user']['sulLastPasswordChange']	= $user[0]['sulLastPasswordChange'];
+	$GLOBALS['lasloSysGbs']['user']['sulAccountStatus'] 			= $user[0]['sulAccountStatus'];
+	$GLOBALS['lasloSysGbs']['user']['sulAccountType'] 				= $user[0]['sulAccountType'];
 }
 
 
-function isLoginSessionExpired() {
+function lasloIsLoginSessionExpired() {
 	$login_session_duration = 10; // global var
-	$current_time = time(); 
-	if(isset($_SESSION['loggedintime']) and isset($_SESSION["userId"])){  
-		if(((time() - $_SESSION['loggedintime']) > $login_session_duration)){ 
-			return true; 
-		} 
+	$current_time = time();
+	if(isset($_SESSION['loggedintime']) and isset($_SESSION["userId"])){
+		if(((time() - $_SESSION['loggedintime']) > $login_session_duration)){
+			return true;
+		}
 	}
 	return false;
 }
@@ -120,7 +123,7 @@ function isLoginSessionExpired() {
 *
 *
 */
-function promptLogin(){
+function lasloPromptLogin(){
 	echo('
 <html>
 	<head>
@@ -137,9 +140,9 @@ function promptLogin(){
 	');
 }
 
-function isUserAllowedApplication($application){
-	
-	foreach($GLOBALS['lasloSystemGlobals']['user']['applications'] as $key => $value){
+function lasloIsUserAllowedApplication($application){
+
+	foreach($GLOBALS['lasloSysGbs']['user']['applications'] as $key => $value){
 		foreach($value as $key2 => $value2){
 			if($key2 == 'sal_NameId' AND $value2 == $application){
 				return true;
@@ -149,9 +152,9 @@ function isUserAllowedApplication($application){
 	return false;
 }
 
-function loadUserAppList($userId){
-	
-	$GLOBALS['lasloSystemGlobals']['user']['applications'] = $GLOBALS['lasloSystemGlobals']['db']['connection']->select(
+function lasloloadUserAppList($userId){
+
+	return $GLOBALS['lasloSysGbs']['db']['connection']->select(
 		'sysUserGroupList',
 		array(
 			'[>]sysGroupApplicationList' 	=> array('sugl_sglIndexid' => 'sgal_sglIndexId'),
@@ -167,3 +170,42 @@ function loadUserAppList($userId){
 	#echo('<code><pre>');
 	#print_r($apps);
 }
+
+function lasloReturnHomeAppArray(){
+	return array(
+			'application'	=> 'baseapps',
+			'class'  			=> 'home_ui',
+			'method'			=> 'index'
+			);
+}
+
+function lasloReturnDefaultAppArray(){
+	
+	//
+	// Check user preferences
+	//
+	
+	//
+	// Check Group options
+	//
+	
+	//
+	// Return default App
+	//
+	
+	return lasloReturnHomeappArray();	
+}
+//
+// Just runs the default app if all else fails.
+//
+function lalsoRunDefaultApp(){
+	$GLOBALS['lasloSysGbs']['calledApplication'] = lasloReturnDefaultAppArray();
+		$calledApplication = lasloCreateObject(
+			$GLOBALS['lasloSysGbs']['calledApplication']['application'],
+			$GLOBALS['lasloSysGbs']['calledApplication']['class']
+		);
+		$code = '$calledApplication->'. $GLOBALS['lasloSysGbs']['calledApplication']['method'] .'();';	
+		eval($code);
+}
+
+

@@ -11,18 +11,18 @@
 			$retString = '
 <div id=applicationsBar >
 	<A HREF="index.php" target="_blank">
-		<img border=0 title="Logo" alt="Logo" src="img/logo.png"></img>
+		<img border=0 title="Logo" alt="Logo" src="baseapps/img/logo.png"></img>
 		Logo
 	</A>
 </div>
 <div class=applicationsBarItem >
 	<A HREF="index.php?action=home.home_ui.index">
-		<img border=0 title="Home" alt="Home" src="home/img/navbar.png"></img>
+		<img border=0 title="Home" alt="Home" src="baseapps/img/navbar.png"></img>
 		Home
 	</A>
 </div>
 ';
-			foreach($GLOBALS['lasloSystemGlobals']['user']['applications'] as $key => $value){
+			foreach($GLOBALS['lasloSysGbs']['user']['applications'] as $key => $value){
 				$retString .= '
 <div class=applicationsBarItem id="'.$value['sal_NameId'].'_'.$value['sal_Order'].'">
 	<A HREF="index.php?action='.$value['sal_NameId'].'.index_ui.index">
@@ -35,7 +35,7 @@
 			$retString .= '
 <div>
 	<A HREF="index.php?action=logout">
-		<img border=0 title="Logout" alt="Logout" src="img/logout.png"></img>
+		<img border=0 title="Logout" alt="Logout" src="baseapps/img/logout.png"></img>
 		Logout
 	</A>
 </div>

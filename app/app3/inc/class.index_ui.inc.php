@@ -6,15 +6,16 @@
 		//	This is a list of functions that can be called directly by the user
 		//
 		var $publicFunctions = array(
-			'index' => true,
+			'index' => false,
 #			'' => true,
 #			'' => true,
 		);
 		
-		function index_ui(){
-			$GLOBALS['lasloSystemGlobals']['pageParts']->applicationsBar();
+		function lasloConstruct(){
+//			echo $GLOBALS['lasloSysGbs']['pageParts']->topStausBar();
+//			echo $GLOBALS['lasloSysGbs']['pageParts']->applicationsBar();
 			echo 'App3 index_ui<br>';
-			$this->bo = createObject('app3', 'index_bo');
+			$this->bo = lasloCreateObject('app3', 'index_bo');
 		}
 		
 		function index(){
