@@ -1,4 +1,7 @@
 <?PHP
+
+echo ' <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> ';
+
 session_start();
 $GLOBALS['lasloSysGbs']['rootDir'] = dirname(__DIR__);
 
@@ -75,12 +78,22 @@ if(lasloIsLoggedIn()){
 	
 	$applicationRejected = false;
 	if(isset($calledApplication->publicFunctions[$GLOBALS['lasloSysGbs']['calledApplication']['method']])){
-		if($calledApplication->publicFunctions[$GLOBALS['lasloSysGbs']['calledApplication']['method']] === true){ 
+		if($calledApplication->publicFunctions[$GLOBALS['lasloSysGbs']['calledApplication']['method']] === true){
+//
+//	Alowed to run method.
+//
+			foreach($GLOBALS['lasloSysGbs']['user']['applications'] as $key => $value){
+				if($value['sgal_salNameId'] == $GLOBALS['lasloSysGbs']['calledApplication']['application']){
+					$GLOBALS['lasloSysGbs']['calledApplication']['applicationTitle'] = $value['sgal_salNameId'];
+					break;
+				}
+			}
 			if(	method_exists($calledApplication, 'lasloConstruct')){
 				$calledApplication->lasloConstruct();
 			}
 			$code = '$calledApplication->'. $GLOBALS['lasloSysGbs']['calledApplication']['method'] .'();';	
 			eval($code);
+			echo $GLOBALS['lasloSysGbs']['pageParts']->footerBar();
 			$applicationRejected = false;
 		} else {
 			$applicationRejected = true;

@@ -200,6 +200,7 @@ function lasloReturnDefaultAppArray(){
 //
 function lalsoRunDefaultApp(){
 	$GLOBALS['lasloSysGbs']['calledApplication'] = lasloReturnDefaultAppArray();
+		$GLOBALS['lasloSysGbs']['calledApplication']['applicationTitle'] = $GLOBALS['lasloSysGbs']['calledApplication']['application'];
 		$calledApplication = lasloCreateObject(
 			$GLOBALS['lasloSysGbs']['calledApplication']['application'],
 			$GLOBALS['lasloSysGbs']['calledApplication']['class']

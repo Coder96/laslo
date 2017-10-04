@@ -11,9 +11,10 @@
 		function __construct(){
 			echo $GLOBALS['lasloSysGbs']['pageParts']->topStausBar();
 			echo $GLOBALS['lasloSysGbs']['pageParts']->applicationsBar();
-//			echo('<code><pre>');
-//			echo("GLOBALS['lasloSystemGlobals]<br>");
-//			print_r($GLOBALS['lasloSysGbs']);
+			echo $GLOBALS['lasloSysGbs']['pageParts']->applicationTitleBar();
+			echo('<code><pre>');
+			echo('lasloSysGbs');
+			print_r($GLOBALS['lasloSysGbs']);
 //			echo('Session<br>');
 //			print_r($_SESSION);
 		}

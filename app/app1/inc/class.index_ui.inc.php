@@ -12,17 +12,22 @@ class index_ui {
 //			'' => true,
 	);
 	//
-	//
+	// This is run when the object is created.
 	//
 //	function __construct(){
 //	}
 	//
-	// This will run if the method is allowed to run from the out side world.
+	// This will only auto run if:
+	//	1. The called method is called from the browser. 
+	//	2. The called method is allowed to be called from the brower.
+	//	3. The user is allowed to call the called method.
 	//		Put any output in here.
 	//
 	function lasloConstruct(){
+	//	$GLOBALS['lasloSysGbs']['calledApplication']['applicationTitle'] = 'if you want to change the title';
 		echo $GLOBALS['lasloSysGbs']['pageParts']->topStausBar();
 		echo $GLOBALS['lasloSysGbs']['pageParts']->applicationsBar();
+		echo $GLOBALS['lasloSysGbs']['pageParts']->applicationTitleBar();
 		echo 'App1 index_ui<br>';
 		//$this->bo = lasloCreateObject('app1', 'index_bo');
 	}	
