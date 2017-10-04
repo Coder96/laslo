@@ -88,7 +88,7 @@ if(lasloIsLoggedIn()){
 					break;
 				}
 			}
-			if(	method_exists($calledApplication, 'lasloConstruct')){
+			if(method_exists($calledApplication, 'lasloConstruct')){
 				$calledApplication->lasloConstruct();
 			}
 			$code = '$calledApplication->'. $GLOBALS['lasloSysGbs']['calledApplication']['method'] .'();';	
